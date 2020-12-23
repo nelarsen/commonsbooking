@@ -205,10 +205,11 @@ class BookingCodes
             $post->post_type == \CommonsBooking\Wordpress\CustomPostType\Timeframe::$postType
         ) {
             global $wpdb;
-            $query = $wpdb->prepare('SELECT timeframe FROM wp_cb_bookingcodes WHERE timeframe = %d', $post->ID);
+            $table_bookingcodes = $wpdb->prefix.self::$BOOKINGCODES_TABLE;
+            $query = $wpdb->prepare("SELECT timeframe FROM $table_bookingcodes WHERE timeframe = %d", $post->ID);
             $var = $wpdb->get_var($query);
             if ($var) {
-                $query2 = $wpdb->prepare('DELETE FROM wp_cb_bookingcodes WHERE timeframe = %d', $post->ID);
+                $query2 = $wpdb->prepare("DELETE FROM $table_bookingcodes WHERE timeframe = %d", $post->ID);
                 $wpdb->query($query2);
             }
         }
