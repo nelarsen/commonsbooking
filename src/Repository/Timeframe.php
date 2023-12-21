@@ -297,14 +297,19 @@ class Timeframe extends PostRepository {
 				$dateQuery = self::getTimerangeQuery( $table_postmeta, $minTimestamp, $maxTimestamp );
 			}
 
-			// Complete query
-			$query = "SELECT DISTINCT pm1.* from $table_posts pm1
+			// Complete query, relying on $dateQuery being safe (returned by $wpdb->prepare()) against SQL-injection
+			$postTypes = \CommonsBooking\Wordpress\CustomPostType\Timeframe::getSimilarPostTypes();
+			$postIdsPlaceholders = implode( ',', array_fill( 0, count( $postIds ), '%d' ) );
+			$postTypePlaceholders = implode( ',', array_fill( 0, count( $postTypes ), '%s' ) );
+			$postStatusPlaceholders = implode( ',', array_fill( 0, count( $postStatus ), '%s' ) );
+
+			$query = $wpdb->prepare("SELECT DISTINCT pm1.* from $table_posts pm1
                     " . $dateQuery . "
                     WHERE
-                        pm1.id in (" . implode( ",", $postIds ) . ") AND
-                        pm1.post_type IN ('" . implode( "','", \CommonsBooking\Wordpress\CustomPostType\Timeframe::getSimilarPostTypes() ) . "') AND
-                        pm1.post_status IN ('" . implode( "','", $postStatus ) . "')
-                ";
+                        pm1.id in ($postIdsPlaceholders) AND
+                        pm1.post_type IN ($postTypePlaceholders) AND
+                        pm1.post_status IN ($postStatusPlaceholders)
+                ", ...$postIds, ...$postTypes, ...$postStatus);
 
 			$posts = $wpdb->get_results( $query );
 			$posts = Wordpress::flattenWpdbResult( $posts );
