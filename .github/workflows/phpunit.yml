@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - 'bookingcodes_eternal'
+      - 'bookingcodes_eternal_testing'
       - 'master'
       - 'release/**'
     paths-ignore:

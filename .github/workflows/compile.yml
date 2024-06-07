@@ -2,6 +2,8 @@ name: Compile changes
 on:
   push:
     branches:
+      - 'bookingcodes_eternal'
+      - 'bookingcodes_eternal_testing'    
       - master
       - 'release/**'
     paths-ignore:

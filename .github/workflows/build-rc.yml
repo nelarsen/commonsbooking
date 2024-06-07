@@ -2,6 +2,8 @@ name: Build zip from release branch
 on:
   push:
     branches:
+      - 'bookingcodes_eternal'
+      - 'bookingcodes_eternal_testing'    
       - 'release/**'
 
 jobs:
