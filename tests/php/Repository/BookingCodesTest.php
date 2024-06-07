@@ -326,7 +326,7 @@ class BookingCodesTest extends CustomPostTypeTest
 
         $todayDate = date('Y-m-d',strtotime(self::CURRENT_DATE));
         $code = BookingCodes::getCode($this->timeframeWithEndDate,$this->itemId,$this->locationId,$todayDate,self::ADVANCE_GENERATION_DAYS);
-        $this->assertEquals('right_code_', $code);
+        $this->assertEquals('right_code_', $code->getCode());
 
     }
     
