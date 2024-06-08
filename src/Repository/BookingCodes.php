@@ -101,7 +101,7 @@ class BookingCodes {
 				"SELECT * FROM $table_name
                 WHERE item = %d
                 AND date BETWEEN %s AND %s
-                ORDER BY item ASC ,date ASC
+                ORDER BY item ASC, date ASC, timeframe ASC, location ASC
             	",
 				$timeframe->getItem()->ID,
 				$startDate,
@@ -142,7 +142,7 @@ class BookingCodes {
 			WHERE 
 				item = %s AND 
 				date = %s
-			ORDER BY item ASC, date ASC
+			ORDER BY item ASC, date ASC, timeframe ASC, location ASC
 			LIMIT 1",
 			$itemId,
 			$date
