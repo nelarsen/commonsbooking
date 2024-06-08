@@ -152,9 +152,9 @@ class BookingCodes {
                 $finalCodes = !empty($preferredCodes) ? $preferredCodes : $codes;
 
                 // Pick the first code if there are still multiple entries
-                $filteredCodes[] = $finalCodes[0];
+                $filteredCodes[] = reset($finalCodes);
             } else {
-                $filteredCodes[] = $codes[0];
+                $filteredCodes[] = reset($codes);
             }
         }
 
