@@ -169,7 +169,7 @@ class BookingCodes {
 	 *
 	 * @return BookingCode|null
 	 */
-	private static function lookupCode(int $itemId, string $date): ?BookingCode {
+	private static function lookupCode(int $itemId, string $date, int $preferredTimeframeId = 0, int $preferredLocationId = 0): ?BookingCode {
 		global $wpdb;
 		$table_name = $wpdb->prefix . self::$tablename;
 
@@ -178,13 +178,14 @@ class BookingCodes {
 			WHERE 
 				item = %s AND 
 				date = %s
-			ORDER BY item ASC, date ASC, timeframe ASC, location ASC
-			LIMIT 1",
+			ORDER BY item ASC, date ASC, timeframe ASC, location ASC",
 			$itemId,
 			$date
 		);
 
 		$bookingCodes = $wpdb->get_results($sql);
+
+		self::backwardCompatibilityFilter($bookingCodes, $preferredTimeframeId, $preferredLocationId);
 
 		if (count($bookingCodes)) {
 			return new BookingCode(
@@ -215,7 +216,7 @@ class BookingCodes {
 			return $cacheItem;
 		} else {
 
-			$bookingCodeObject = static::lookupCode($itemId, $date);
+			$bookingCodeObject = static::lookupCode($itemId, $date, $timeframe->ID, $locationId);
 
 			if ( ! $bookingCodeObject ) {
 				//when we have a timeframe without end-date we generate as many codes as we need
@@ -229,7 +230,7 @@ class BookingCodes {
 					$interval = DateInterval::createFromDateString( '1 day' );
 					$period = new DatePeriod( $begin, $interval, $endDate );
 					static::generatePeriod($timeframe,$period);
-					$bookingCodeObject = static::lookupCode($itemId, $date);
+					$bookingCodeObject = static::lookupCode($itemId, $date, $timeframe->ID, $locationId);
 				}
 			}
 
@@ -336,7 +337,7 @@ class BookingCodes {
 			if ( $day->isInTimeframe( $timeframe ) ) {
 
 				// Check if a code already exists, if so DO NOT generate new
-				if ( static::lookupCode($item->ID, $dt->format( 'Y-m-d' )) ) {
+				if ( static::lookupCode($item->ID, $dt->format( 'Y-m-d' ), $timeframe->ID, $location->ID) ) {
 					continue;
 				}
 
