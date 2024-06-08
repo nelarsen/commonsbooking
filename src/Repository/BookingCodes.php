@@ -109,6 +109,8 @@ class BookingCodes {
 			);
 			$bookingCodes = $wpdb->get_results($sql);
 
+			self::backwardCompatibilityFilter($bookingCodes, $timeframeId, $timeframe->getLocation()->ID);
+
 			$codes = [];
 			foreach ( $bookingCodes as $bookingCode ) {
 				$bookingCodeObject = new BookingCode(
@@ -124,6 +126,40 @@ class BookingCodes {
 			return $codes;
 		}
 	}
+
+    private static function backwardCompatibilityFilter(&$bookingCodes, $preferredTimeframeId, $preferredLocationId) {
+        $filteredCodes = [];
+        $codesByDate = [];
+
+        // Group booking codes by date
+        foreach ($bookingCodes as $code) {
+            $date = $code->date;
+            if (!isset($codesByDate[$date])) {
+                $codesByDate[$date] = [];
+            }
+            $codesByDate[$date][] = $code;
+        }
+
+        // For each date, filter out codes to ensure only one entry per date
+        foreach ($codesByDate as $date => $codes) {
+            if (count($codes) > 1) {
+                // Try to keep entries matching $preferredTimeframeId and $preferredLocationId
+                $preferredCodes = array_filter($codes, function($code) use ($preferredTimeframeId, $preferredLocationId) {
+                    return $code->timeframe == $preferredTimeframeId && $code->location == $preferredLocationId;
+                });
+
+                // If there are preferred codes, use them. Otherwise, use all codes.
+                $finalCodes = !empty($preferredCodes) ? $preferredCodes : $codes;
+
+                // Pick the first code if there are still multiple entries
+                $filteredCodes[] = $finalCodes[0];
+            } else {
+                $filteredCodes[] = $codes[0];
+            }
+        }
+
+        $bookingCodes = $filteredCodes;
+    }
 
 	/**
 	 * Gets a specific booking code by item ID and date.
