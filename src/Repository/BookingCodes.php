@@ -109,7 +109,7 @@ class BookingCodes {
 			);
 			$bookingCodes = $wpdb->get_results($sql);
 
-			self::backwardCompatibilityFilter($bookingCodes, $timeframeId, $timeframe->getLocation()->ID);
+			self::backwardCompatibilityFilter($bookingCodes, $timeframeId, $timeframe->getLocation()->ID); // for backward compatibility: delete line in future cb
 
 			$codes = [];
 			foreach ( $bookingCodes as $bookingCode ) {
@@ -127,6 +127,17 @@ class BookingCodes {
 		}
 	}
 
+	/**
+	 * Filter an array of BookingCode|s such that it contains only one BookingCode per date.
+	 * Function is only needed when new cb version handles database entries created by old cb version.
+	 * The filtering can be omitted in future cb versions when backward compatibility with old cb is dropped.
+	 *
+	 * @param $bookingCodes[] array of BookingCode|s. It is assumed that they all have the same itemId.
+	 * @param int $preferredTimeframeId timeframeId to prefer when filtering
+	 * @param int $preferredLocationId locationId to prefer when filtering
+	 *
+	 * @return $bookingCodes[] array of BookingCode|s (only one code per day)
+	 */
 	private static function backwardCompatibilityFilter(&$bookingCodes, $preferredTimeframeId, $preferredLocationId) {
 		$filteredCodes = [];
 		$codesByDate = [];
@@ -143,7 +154,7 @@ class BookingCodes {
 		// For each date, filter out codes to ensure only one entry per date
 		foreach ($codesByDate as $date => $codes) {
 			if (count($codes) > 1) {
-				// Try to keep entries matching $preferredTimeframeId and $preferredLocationId
+				// Keep entries matching $preferredTimeframeId and $preferredLocationId
 				$preferredCodes = array_filter($codes, function($code) use ($preferredTimeframeId, $preferredLocationId) {
 					return $code->timeframe == $preferredTimeframeId && $code->location == $preferredLocationId;
 				});
@@ -185,7 +196,7 @@ class BookingCodes {
 
 		$bookingCodes = $wpdb->get_results($sql);
 
-		self::backwardCompatibilityFilter($bookingCodes, $preferredTimeframeId, $preferredLocationId);
+		self::backwardCompatibilityFilter($bookingCodes, $preferredTimeframeId, $preferredLocationId); // for backward compatibility: delete line in future cb
 
 		if (count($bookingCodes)) {
 			return new BookingCode(
