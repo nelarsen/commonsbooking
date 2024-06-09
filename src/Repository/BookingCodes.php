@@ -109,7 +109,7 @@ class BookingCodes {
 			);
 			$bookingCodes = $wpdb->get_results($sql);
 
-			self::backwardCompatibilityFilter($bookingCodes, $timeframeId, $timeframe->getLocation()->ID); // for backward compatibility: delete line in future cb
+			self::backwardCompatibilityFilter( $bookingCodes, $timeframeId, $timeframe->getLocation()->ID ); // for backward compatibility: delete line in future cb
 
 			$codes = [];
 			foreach ( $bookingCodes as $bookingCode ) {
@@ -143,19 +143,19 @@ class BookingCodes {
 		$codesByDate = [];
 
 		// Group booking codes by date
-		foreach ($bookingCodes as $code) {
+		foreach ( $bookingCodes as $code ) {
 			$date = $code->date;
-			if (!isset($codesByDate[$date])) {
+			if (! isset($codesByDate[$date]) ) {
 				$codesByDate[$date] = [];
 			}
 			$codesByDate[$date][] = $code;
 		}
 
 		// For each date, filter out codes to ensure only one entry per date
-		foreach ($codesByDate as $date => $codes) {
-			if (count($codes) > 1) {
+		foreach ( $codesByDate as $date => $codes ) {
+			if ( count($codes) > 1 ) {
 				// Keep entries matching $preferredTimeframeId and $preferredLocationId
-				$preferredCodes = array_filter($codes, function($code) use ($preferredTimeframeId, $preferredLocationId) {
+				$preferredCodes = array_filter( $codes, function($code) use ($preferredTimeframeId, $preferredLocationId ) {
 					return $code->timeframe == $preferredTimeframeId && $code->location == $preferredLocationId;
 				});
 
@@ -177,6 +177,8 @@ class BookingCodes {
 	 *
 	 * @param int $itemId - ID of item attached to timeframe
 	 * @param string $date - Date in format Y-m-d
+	 * @param int $preferredTimeframeId only for compatibility with database entries created by old cb version. delete in future
+	 * @param int $preferredLocationId see $preferredTimeframeId
 	 *
 	 * @return BookingCode|null
 	 */
@@ -196,7 +198,7 @@ class BookingCodes {
 
 		$bookingCodes = $wpdb->get_results($sql);
 
-		self::backwardCompatibilityFilter($bookingCodes, $preferredTimeframeId, $preferredLocationId); // for backward compatibility: delete line in future cb
+		self::backwardCompatibilityFilter( $bookingCodes, $preferredTimeframeId, $preferredLocationId ); // for backward compatibility: delete line in future cb
 
 		if (count($bookingCodes)) {
 			return new BookingCode(
@@ -226,8 +228,8 @@ class BookingCodes {
 		if ( $cacheItem ) {
 			return $cacheItem;
 		} else {
-
-			$bookingCodeObject = static::lookupCode($itemId, $date, $timeframe->ID, $locationId);
+			// timeframeid and locationid are only for backward compatibility with database entries from old cb
+			$bookingCodeObject = static::lookupCode( $itemId, $date, $timeframe->ID, $locationId );
 
 			if ( ! $bookingCodeObject ) {
 				//when we have a timeframe without end-date we generate as many codes as we need
@@ -241,7 +243,7 @@ class BookingCodes {
 					$interval = DateInterval::createFromDateString( '1 day' );
 					$period = new DatePeriod( $begin, $interval, $endDate );
 					static::generatePeriod($timeframe,$period);
-					$bookingCodeObject = static::lookupCode($itemId, $date, $timeframe->ID, $locationId);
+					$bookingCodeObject = static::lookupCode( $itemId, $date, $timeframe->ID, $locationId );
 				}
 			}
 
@@ -348,6 +350,7 @@ class BookingCodes {
 			if ( $day->isInTimeframe( $timeframe ) ) {
 
 				// Check if a code already exists, if so DO NOT generate new
+				// timeframeid and locationid are only for backward compatibility with database entries from old cb
 				if ( static::lookupCode($item->ID, $dt->format( 'Y-m-d' ), $timeframe->ID, $location->ID) ) {
 					continue;
 				}
