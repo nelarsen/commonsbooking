@@ -291,13 +291,17 @@ class BookingCodesTest extends CustomPostTypeTest
 
 		// test behavior of getCodes() without specified startDate and endDate:
 		// codes will be generated and returned
-		// - for today (1) 
-		// - for $daysInFuture and
+		// - for the future date (1) 
 		// - for additional BookingCodes::ADVANCE_GENERATION_DAYS
-		$codeAmount = 1 + $daysInFuture + BookingCodes::ADVANCE_GENERATION_DAYS;
+		$codeAmount = 1 + BookingCodes::ADVANCE_GENERATION_DAYS;
 		$codes = BookingCodes::getCodes( $this->timeframeWithoutEndDate->ID );
 		$this->assertNotEmpty( $codes );
 		$this->assertCount( $codeAmount, $codes );
+
+		// check that no codes have been generated from beginning of timeframe,
+		// by checking that first generated code is for the future date
+		$this->assertEquals( $futureDate->format( 'Y-m-d' ), $codes[0]->getDate() );
+
 		//check that the codes are in the correct order
 		$lastCode = null;
 		foreach ( $codes as $code ) {
