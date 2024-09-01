@@ -341,7 +341,7 @@ class BookingCodes {
 			throw new BookingCodeException( __( "No booking codes could be created because the item of the timeframe could not be found.", 'commonsbooking' )  );
 		}
         
-        $todayMidnight = new \DateTime('today midnight', $period->getStartDate()->getTimezone(););
+        $todayMidnight = new \DateTime('today midnight', $period->getStartDate()->getTimezone());
 		
         foreach ( $period as $dt ) {
             if ($dt < $todayMidnight) continue;
