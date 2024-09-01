@@ -128,7 +128,7 @@ class BookingCodesTest extends CustomPostTypeTest
 		$timeframe_1 = new Timeframe($this->createTimeframe(
 			$this->locationId,
 			$this->itemId,
-			strtotime( '-1 day', strtotime( self::CURRENT_DATE ) ),
+			strtotime( 'today midnight' ),
 			null,
 		));
 
@@ -176,7 +176,7 @@ class BookingCodesTest extends CustomPostTypeTest
 		$timeframe_2 = new Timeframe($this->createTimeframe(
 			$this->locationId,
 			$this->itemId,
-			strtotime( '-1 day', strtotime( self::CURRENT_DATE ) ),
+			strtotime( 'today midnight' ),
 			null,
 		));
 
@@ -371,20 +371,20 @@ class BookingCodesTest extends CustomPostTypeTest
 		$this->timeframeWithEndDate = new Timeframe($this->createTimeframe(
 			$this->locationId,
 			$this->itemId,
-			strtotime( '-1 day', strtotime( self::CURRENT_DATE ) ),
+			strtotime( 'today midnight' ),
 			strtotime( '+29 day', strtotime( self::CURRENT_DATE ) )
 		));
 		$this->timeframeWithoutEndDate = new Timeframe($this->createTimeframe(
 			$this->locationId,
 			$this->itemId,
-			strtotime( '-1 day', strtotime( self::CURRENT_DATE ) ),
+			strtotime( 'today midnight' ),
 			null,
 		));
 
 		$this->timeframeWithDisabledBookingCodesAndEndDate = new Timeframe($this->createTimeframe(
             $this->locationId,
             $this->itemId,
-            strtotime('-1 day', strtotime(self::CURRENT_DATE)),
+            strtotime( 'today midnight' ),
             strtotime('+30 day', strtotime(self::CURRENT_DATE)),
             \CommonsBooking\Wordpress\CustomPostType\Timeframe::BOOKABLE_ID,
             "on",
@@ -408,7 +408,7 @@ class BookingCodesTest extends CustomPostTypeTest
 		$this->timeframeWithDisabledBookingCodesWithoutEndDate = new Timeframe($this->createTimeframe(
             $this->locationId,
             $this->itemId,
-            strtotime('-1 day', strtotime(self::CURRENT_DATE)),
+            strtotime( 'today midnight' ),
             null,
             \CommonsBooking\Wordpress\CustomPostType\Timeframe::BOOKABLE_ID,
             "on",
