@@ -32,12 +32,19 @@ class BookingTest_AJAX_Test extends \WP_Ajax_UnitTestCase {
 			'startDate'  => date( 'm/d/Y', strtotime( CustomPostTypeTest::CURRENT_DATE ) ),
 		];
 		$_POST['data'] = $data;
+        
+        
+        fwrite(STDERR, "Postdata:" . print_r($data, TRUE));
+        
 		//first case: booking code set
 		try {
 			$this->_handleAjax( 'cb_get_booking_code' );
 		} catch ( \WPAjaxDieContinueException $e ) {
 			// We expect this exception to be thrown
 		}
+        
+        fwrite(STDERR, "Response:" . print_r($this->_last_response, TRUE));
+        
 		//we have to remove the deprecation warnings from the response
 		$response = explode( "\n", $this->_last_response );
 		$response = json_decode( end( $response ) );
