@@ -245,10 +245,9 @@ class BookingCodesTest extends CustomPostTypeTest
 		BookingCodes::generate( $this->timeframeWithoutEndDate, self::ADVANCE_GENERATION_DAYS );
 
 		// codes will be generated and returned
-		// - for yesterday which is timeframe start date (1),
 		// - for today (1) and
 		// - for additional BookingCodes::ADVANCE_GENERATION_DAYS
-		$codeAmount = BookingCodes::ADVANCE_GENERATION_DAYS + 2;
+		$codeAmount = 1 + BookingCodes::ADVANCE_GENERATION_DAYS ;
 		$codes = BookingCodes::getCodes( $this->timeframeWithoutEndDate->ID );
 		$this->assertNotEmpty( $codes );
 		$this->assertCount( $codeAmount, $codes );
