@@ -24,6 +24,7 @@ class BookingTest_AJAX_Test extends \WP_Ajax_UnitTestCase {
 
 	public function testGetBookingCode_AJAX() {
 		ClockMock::freeze( new \DateTime( CustomPostTypeTest::CURRENT_DATE ));
+        \CommonsBooking\Repository\BookingCodes::generate( new \CommonsBooking\Model\Timeframe( $this->timeframeID ) );
 		$_POST['_wpnonce'] = wp_create_nonce( 'cb_get_booking_code' );
 		$data = [
 			'locationID' => $this->locationID,
