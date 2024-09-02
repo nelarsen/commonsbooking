@@ -353,7 +353,7 @@ class Booking extends View {
 				throw new Exception( 'No bookable timeframe found for this booking.' );
 			}
 			$timeframe = reset($timeframe);
-            fwrite(STDERR, "getBookingCode_AJAX 2, startdate" . date('Y-m-d', strtotime($startDate)) . "tf $timeframe, itemID $itemID, locID $locationID");
+            fwrite(STDERR, "getBookingCode_AJAX 2, startdate" . date('Y-m-d', strtotime($startDate)) . "tf {$timeframe->ID}, itemID $itemID, locID $locationID");
 			//get the booking code
 			$bookingCode = \CommonsBooking\Repository\BookingCodes::getCode($timeframe, $itemID, $locationID, date('Y-m-d', strtotime($startDate)));
             

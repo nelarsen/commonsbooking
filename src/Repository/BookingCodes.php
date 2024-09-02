@@ -224,14 +224,25 @@ class BookingCodes {
 	 * @throws BookingCodeException
 	 */
 	public static function getCode( Timeframe $timeframe, int $itemId, int $locationId, string $date, int $advanceGenerationDays = self::ADVANCE_GENERATION_DAYS ) : ?BookingCode {
+        
+        if ($locationId == 2594 && $itemId == 2593) {
+            fwrite(STDERR, "getCode\r\n");
+        }
+        
 		$cacheItem = Plugin::getCacheItem();
 		if ( $cacheItem ) {
+            if ($locationId == 2594 && $itemId == 2593) {
+                fwrite(STDERR, "cacheHit\r\n");
+            }            
 			return $cacheItem;
 		} else {
 			// timeframeid and locationid are only for backward compatibility with database entries from old cb
 			$bookingCodeObject = static::lookupCode( $itemId, $date, $timeframe->ID, $locationId );
 
 			if ( ! $bookingCodeObject ) {
+                if ($locationId == 2594 && $itemId == 2593) {
+                    fwrite(STDERR, "! $bookingCodeObject\r\n");
+                }                
 				//when we have a timeframe without end-date we generate as many codes as we need
 				if (! $timeframe->getRawEndDate() && $timeframe->bookingCodesApplicable() ) {
 					$begin = $timeframe->getUTCStartDateDateTime();
@@ -242,10 +253,19 @@ class BookingCodes {
 					$endDate->setTime(0, 0, 1);
 					$interval = DateInterval::createFromDateString( '1 day' );
 					$period = new DatePeriod( $begin, $interval, $endDate );
+                    
+                    if ($locationId == 2594 && $itemId == 2593) {
+                        fwrite(STDERR, "period: " . print_r($period,true) . "\r\n");
+                    }  
+                    
 					static::generatePeriod($timeframe,$period);
 					$bookingCodeObject = static::lookupCode( $itemId, $date, $timeframe->ID, $locationId );
 				}
-			}
+			} else {
+                if ($locationId == 2594 && $itemId == 2593) {
+                    fwrite(STDERR, "bookingCodeObject is not null");
+                }                
+            }
 
 			Plugin::setCacheItem( $bookingCodeObject, [$timeframe->ID] );
 
