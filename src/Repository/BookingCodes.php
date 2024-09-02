@@ -241,10 +241,11 @@ class BookingCodes {
 
 			if ( ! $bookingCodeObject ) {
                 if ($locationId == 2594 && $itemId == 2593) {
-                    fwrite(STDERR, "! $bookingCodeObject\r\n");
+                    fwrite(STDERR, "! bookingCodeObject\r\n");
                 }                
 				//when we have a timeframe without end-date we generate as many codes as we need
 				if (! $timeframe->getRawEndDate() && $timeframe->bookingCodesApplicable() ) {
+                    fwrite(STDERR, "no enddate\r\n");
 					$begin = $timeframe->getUTCStartDateDateTime();
 					$endDate = new \DateTime($date);
 					$endDate->modify('+' . $advanceGenerationDays . ' days');
@@ -260,7 +261,9 @@ class BookingCodes {
                     
 					static::generatePeriod($timeframe,$period);
 					$bookingCodeObject = static::lookupCode( $itemId, $date, $timeframe->ID, $locationId );
-				}
+				} else {
+                    fwrite(STDERR, "has enddate\r\n");
+                }
 			} else {
                 if ($locationId == 2594 && $itemId == 2593) {
                     fwrite(STDERR, "bookingCodeObject is not null");
