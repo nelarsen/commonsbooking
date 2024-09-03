@@ -291,7 +291,7 @@ class BookingCodesTest extends CustomPostTypeTest
 
 		// test behavior of getCodes() without specified startDate and endDate:
 		// codes will be generated and returned
-		// - for the future date (1) 
+		// - for the future date (1) and
 		// - for additional BookingCodes::ADVANCE_GENERATION_DAYS
 		$codeAmount = 1 + BookingCodes::ADVANCE_GENERATION_DAYS;
 		$codes = BookingCodes::getCodes( $this->timeframeWithoutEndDate->ID );

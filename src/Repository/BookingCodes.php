@@ -344,6 +344,7 @@ class BookingCodes {
 		$todayMidnight = new \DateTime('today midnight', $period->getStartDate()->getTimezone());
 
 		foreach ( $period as $dt ) {
+			// do not generate any codes for past days
 			if ($dt < $todayMidnight) continue;
 
 			$day = new Day( $dt->format( 'Y-m-d' ) );
