@@ -24,15 +24,14 @@ class BookingTest_AJAX_Test extends \WP_Ajax_UnitTestCase {
 
 	public function testGetBookingCode_AJAX() {
 		ClockMock::freeze( new \DateTime( CustomPostTypeTest::CURRENT_DATE ));
-        //\CommonsBooking\Repository\BookingCodes::generate( new \CommonsBooking\Model\Timeframe( $this->timeframeID ) );
-        
-        // save timeframe to trigger booking code generation
-        // it is necessary to generate here after time has been frozen to CustomPostTypeTest::CURRENT_DATE
-        // because the code generation depends on the current date and codes are not generated for the past
-        // (CustomPostTypeTest::CURRENT_DATE is a date in the past) 
-        $timeframeCPT = new Timeframe();
+
+		// save timeframe to trigger booking code generation
+		// it is necessary to generate here after time has been frozen to CustomPostTypeTest::CURRENT_DATE
+		// because the code generation depends on the current date and codes are not generated for the past
+		// (CustomPostTypeTest::CURRENT_DATE is a date in the past) 
+		$timeframeCPT = new Timeframe();
 		$timeframeCPT->savePost( $this->timeframeID, get_post($this->timeframeID) );
-        
+
 		$_POST['_wpnonce'] = wp_create_nonce( 'cb_get_booking_code' );
 		$data = [
 			'locationID' => $this->locationID,
@@ -41,19 +40,12 @@ class BookingTest_AJAX_Test extends \WP_Ajax_UnitTestCase {
 			'startDate'  => date( 'm/d/Y', strtotime( CustomPostTypeTest::CURRENT_DATE ) ),
 		];
 		$_POST['data'] = $data;
-        
-        
-        fwrite(STDERR, "Postdata:" . print_r($data, TRUE));
-        
 		//first case: booking code set
 		try {
 			$this->_handleAjax( 'cb_get_booking_code' );
 		} catch ( \WPAjaxDieContinueException $e ) {
 			// We expect this exception to be thrown
 		}
-        
-        fwrite(STDERR, "Response:" . print_r($this->_last_response, TRUE));
-        
 		//we have to remove the deprecation warnings from the response
 		$response = explode( "\n", $this->_last_response );
 		$response = json_decode( end( $response ) );
