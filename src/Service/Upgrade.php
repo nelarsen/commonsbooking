@@ -59,9 +59,6 @@ class Upgrade {
 		'2.10.5' => [
 			[ self::class, 'migrateCacheSettings' ],
 		],
-		'2.10.9' => [
-			[ self::class, 'populateRestrictionsTable' ],
-		],
 	];
 
 	/**
@@ -565,29 +562,6 @@ class Upgrade {
 				}
 				update_post_meta( $map->ID, 'filtergroups', $newCategoryArray );
 			}
-		}
-	}
-
-	/**
-	 * Populates the cb_restrictions index table from existing wp_postmeta data.
-	 * This is a one-time migration that copies restriction meta fields into the
-	 * denormalized index table for faster queries.
-	 *
-	 * @return void
-	 * @since 2.10.9
-	 */
-	public static function populateRestrictionsTable(): void {
-		\CommonsBooking\Repository\Restriction::initRestrictionsTable();
-
-		$restrictions = get_posts( [
-			'post_type'   => \CommonsBooking\Wordpress\CustomPostType\Restriction::getPostType(),
-			'post_status' => 'any',
-			'numberposts' => -1,
-			'fields'      => 'ids',
-		] );
-
-		foreach ( $restrictions as $restrictionId ) {
-			\CommonsBooking\Repository\Restriction::syncToIndexTable( (int) $restrictionId );
 		}
 	}
 

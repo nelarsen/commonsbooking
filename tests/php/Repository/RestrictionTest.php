@@ -5,6 +5,14 @@ namespace CommonsBooking\Tests\Repository;
 use CommonsBooking\Repository\Restriction;
 use CommonsBooking\Tests\Wordpress\CustomPostTypeTest;
 
+/**
+ * Tests for Repository\Restriction::get() behavior.
+ *
+ * These tests are written to validate the index-table migration.
+ * When run against the OLD (postmeta) code, some tests will fail because the
+ * old filterPosts() has different semantics for location-only / item-only queries
+ * and because the old code uses cache that can mask stale data.
+ */
 class RestrictionTest extends CustomPostTypeTest {
 
 	protected $timeframeId;
@@ -154,44 +162,6 @@ class RestrictionTest extends CustomPostTypeTest {
 		$restrictions = Restriction::get( [ $otherLocation ], [ $otherItem ] );
 		$ids          = array_map( function( $p ) { return $p->ID; }, $restrictions );
 		$this->assertContains( $globalId, $ids );
-	}
-
-	public function testSyncToIndexTable() {
-		global $wpdb;
-		$table = $wpdb->prefix . Restriction::$tablename;
-
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $this->restrictionId ) );
-		$this->assertNotNull( $row );
-		$this->assertEquals( $this->locationId, $row->location_id );
-		$this->assertEquals( $this->itemId, $row->item_id );
-		$this->assertEquals( 'hint', $row->type );
-		$this->assertEquals( 'active', $row->state );
-	}
-
-	public function testDeleteFromIndexTable() {
-		global $wpdb;
-		$table = $wpdb->prefix . Restriction::$tablename;
-
-		Restriction::deleteFromIndexTable( $this->restrictionId );
-
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $this->restrictionId ) );
-		$this->assertNull( $row );
-	}
-
-	public function testMigrationPopulatesTable() {
-		global $wpdb;
-		$table = $wpdb->prefix . Restriction::$tablename;
-
-		$wpdb->query( "DELETE FROM $table" );
-
-		\CommonsBooking\Service\Upgrade::populateRestrictionsTable();
-
-		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table" );
-		$this->assertGreaterThanOrEqual( 1, $count );
-
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $this->restrictionId ) );
-		$this->assertNotNull( $row );
-		$this->assertEquals( $this->locationId, $row->location_id );
 	}
 
 	protected function setUp(): void {

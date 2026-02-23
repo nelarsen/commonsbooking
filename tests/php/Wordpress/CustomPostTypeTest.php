@@ -4,7 +4,6 @@ namespace CommonsBooking\Tests\Wordpress;
 
 use CommonsBooking\Plugin;
 use CommonsBooking\Repository\BookingCodes;
-use CommonsBooking\Repository\Restriction as RestrictionRepository;
 use CommonsBooking\Tests\BaseTestCase;
 use CommonsBooking\Wordpress\CustomPostType\Booking;
 use CommonsBooking\Wordpress\CustomPostType\Item;
@@ -177,8 +176,6 @@ abstract class CustomPostTypeTest extends BaseTestCase {
 			update_post_meta( $restrictionId, \CommonsBooking\Model\Restriction::META_END, $end );
 		}
 		update_post_meta( $restrictionId, \CommonsBooking\Model\Restriction::META_STATE, $state );
-
-		RestrictionRepository::syncToIndexTable( $restrictionId );
 
 		$this->restrictionIds[] = $restrictionId;
 
@@ -564,36 +561,12 @@ abstract class CustomPostTypeTest extends BaseTestCase {
 		$this->dateFormatted = date( 'Y-m-d', strtotime( self::CURRENT_DATE ) );
 
 		$this->setUpBookingCodesTable();
-		$this->setUpRestrictionsTable();
 
 		// Create location
 		$this->locationId = self::createLocation( 'Testlocation', 'publish' );
 
 		// Create Item
 		$this->itemId = self::createItem( 'TestItem', 'publish' );
-	}
-
-	protected function setUpRestrictionsTable() {
-		global $wpdb;
-		$table_name      = $wpdb->prefix . RestrictionRepository::$tablename;
-		$charset_collate = $wpdb->get_charset_collate();
-		$sql             = "CREATE TABLE IF NOT EXISTS $table_name (
-			id bigint(20) unsigned NOT NULL,
-			location_id bigint(20) unsigned DEFAULT NULL,
-			item_id bigint(20) unsigned DEFAULT NULL,
-			start_date bigint(20) NOT NULL,
-			end_date bigint(20) DEFAULT NULL,
-			type varchar(20) NOT NULL,
-			state varchar(20) NOT NULL,
-			hint text DEFAULT NULL,
-			PRIMARY KEY  (id),
-			KEY idx_state_dates (state, start_date, end_date),
-			KEY idx_location_item (location_id, item_id),
-			KEY idx_item (item_id)
-		) $charset_collate;";
-
-		$wpdb->query( $sql );
-		RestrictionRepository::resetTableExistsCache();
 	}
 
 	protected function setUpBookingCodesTable() {
@@ -622,7 +595,6 @@ abstract class CustomPostTypeTest extends BaseTestCase {
 		$this->tearDownAllBookings();
 		$this->tearDownAllRestrictions();
 		$this->tearDownAllMaps();
-		$this->tearDownRestrictionsTable();
 		$this->tearDownBookingCodesTable();
 
 		wp_logout();
@@ -662,13 +634,6 @@ abstract class CustomPostTypeTest extends BaseTestCase {
 		foreach ( $this->mapIds as $id ) {
 			wp_delete_post( $id, true );
 		}
-	}
-
-	protected function tearDownRestrictionsTable() {
-		global $wpdb;
-		$table_name = $wpdb->prefix . RestrictionRepository::$tablename;
-		$wpdb->query( "DROP TABLE IF EXISTS $table_name" );
-		RestrictionRepository::resetTableExistsCache();
 	}
 
 	protected function tearDownBookingCodesTable() {
