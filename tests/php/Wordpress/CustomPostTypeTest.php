@@ -593,6 +593,7 @@ abstract class CustomPostTypeTest extends BaseTestCase {
 		) $charset_collate;";
 
 		$wpdb->query( $sql );
+		RestrictionRepository::resetTableExistsCache();
 	}
 
 	protected function setUpBookingCodesTable() {
@@ -667,6 +668,7 @@ abstract class CustomPostTypeTest extends BaseTestCase {
 		global $wpdb;
 		$table_name = $wpdb->prefix . RestrictionRepository::$tablename;
 		$wpdb->query( "DROP TABLE IF EXISTS $table_name" );
+		RestrictionRepository::resetTableExistsCache();
 	}
 
 	protected function tearDownBookingCodesTable() {

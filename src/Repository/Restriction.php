@@ -15,6 +15,37 @@ class Restriction extends PostRepository {
 	public static string $tablename = 'cb_restrictions';
 
 	/**
+	 * Cached flag for whether the index table exists.
+	 * null = not checked yet, true/false = result of SHOW TABLES check.
+	 */
+	private static ?bool $tableExists = null;
+
+	/**
+	 * Checks whether the cb_restrictions index table exists.
+	 * The result is cached for the lifetime of the request to avoid
+	 * repeated SHOW TABLES queries during normal operation.
+	 */
+	private static function indexTableExists(): bool {
+		if ( self::$tableExists === null ) {
+			global $wpdb;
+			$table_name       = $wpdb->prefix . self::$tablename;
+			self::$tableExists = $wpdb->get_var(
+				$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
+			) === $table_name;
+		}
+
+		return self::$tableExists;
+	}
+
+	/**
+	 * Resets the cached table-existence flag.
+	 * Call after creating or dropping the table (primarily in tests).
+	 */
+	public static function resetTableExistsCache(): void {
+		self::$tableExists = null;
+	}
+
+	/**
 	 * Creates the cb_restrictions index table.
 	 * This mirrors queryable meta fields into a single indexed table
 	 * so that restriction lookups no longer need multiple postmeta JOINs.
@@ -46,6 +77,8 @@ class Restriction extends PostRepository {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
+		self::$tableExists = true;
+
 		add_option( COMMONSBOOKING_PLUGIN_SLUG . '_restrictions_db_version', $cb_db_version );
 	}
 
@@ -56,6 +89,10 @@ class Restriction extends PostRepository {
 	 * @param int $postId The restriction post ID.
 	 */
 	public static function syncToIndexTable( int $postId ): void {
+		if ( ! self::indexTableExists() ) {
+			return;
+		}
+
 		global $wpdb;
 		$table_name = $wpdb->prefix . self::$tablename;
 
@@ -99,6 +136,10 @@ class Restriction extends PostRepository {
 	 * @param int $postId The restriction post ID.
 	 */
 	public static function deleteFromIndexTable( int $postId ): void {
+		if ( ! self::indexTableExists() ) {
+			return;
+		}
+
 		global $wpdb;
 		$table_name = $wpdb->prefix . self::$tablename;
 
@@ -163,6 +204,10 @@ class Restriction extends PostRepository {
 		$minTimestamp,
 		array $postStatus
 	): array {
+		if ( ! self::indexTableExists() ) {
+			return [];
+		}
+
 		global $wpdb;
 
 		$table       = $wpdb->prefix . self::$tablename;
