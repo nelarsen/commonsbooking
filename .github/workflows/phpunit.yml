@@ -1,8 +1,10 @@
 name: PHP Unit Tests
 
 on:
+  workflow_dispatch:
   push:
     branches:
+      - 'optim_datastructure'    
       - 'master'
       - 'release/**'
     paths-ignore:
