@@ -57,6 +57,9 @@ class Plugin {
 		// Init booking codes table
 		BookingCodes::initBookingCodesTable();
 
+		// Init restrictions index table
+		\CommonsBooking\Repository\Restriction::initRestrictionsTable();
+
 		self::clearCache();
 	}
 
@@ -738,6 +741,11 @@ class Plugin {
 
 		// register shortcodes
 		add_action( 'init', array( $this, 'registerShortcodes' ) );
+
+		// Sync restrictions to index table on save/delete
+		add_action( 'save_post_' . Restriction::getPostType(), array( \CommonsBooking\Repository\Restriction::class, 'syncToIndexTable' ), 20, 1 );
+		add_action( 'delete_post', array( \CommonsBooking\Repository\Restriction::class, 'deleteFromIndexTable' ), 10, 1 );
+		add_action( 'wp_trash_post', array( \CommonsBooking\Repository\Restriction::class, 'deleteFromIndexTable' ), 10, 1 );
 
 		// Remove cache items on save.
 		add_action( 'wp_insert_post', array( $this, 'savePostActions' ), 10, 3 );
