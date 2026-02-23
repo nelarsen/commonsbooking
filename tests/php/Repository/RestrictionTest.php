@@ -17,18 +17,52 @@ class RestrictionTest extends CustomPostTypeTest {
 		$this->assertEquals( $this->restrictionId, $restrictions[0]->ID );
 	}
 
+	/**
+	 * When searching by location only, a restriction that has both location
+	 * AND item set is excluded (both dimensions must be provided to match).
+	 * A location-only restriction (no item) is included.
+	 */
 	public function testGetByLocationOnly() {
+		// The fixture restriction has both location and item → excluded
 		$restrictions = Restriction::get( [ $this->locationId ] );
 		$this->assertIsArray( $restrictions );
+		$this->assertCount( 0, $restrictions );
+
+		// A restriction with location only (no item) → included
+		$locationOnlyId = $this->createRestriction(
+			'hint',
+			$this->locationId,
+			0,
+			strtotime( self::CURRENT_DATE ),
+			strtotime( '+1 day', strtotime( self::CURRENT_DATE ) )
+		);
+		$restrictions = Restriction::get( [ $this->locationId ] );
 		$this->assertCount( 1, $restrictions );
-		$this->assertEquals( $this->restrictionId, $restrictions[0]->ID );
+		$this->assertEquals( $locationOnlyId, $restrictions[0]->ID );
 	}
 
+	/**
+	 * When searching by item only, a restriction that has both location
+	 * AND item set is excluded (both dimensions must be provided to match).
+	 * An item-only restriction (no location) is included.
+	 */
 	public function testGetByItemOnly() {
+		// The fixture restriction has both location and item → excluded
 		$restrictions = Restriction::get( [], [ $this->itemId ] );
 		$this->assertIsArray( $restrictions );
+		$this->assertCount( 0, $restrictions );
+
+		// A restriction with item only (no location) → included
+		$itemOnlyId = $this->createRestriction(
+			'hint',
+			0,
+			$this->itemId,
+			strtotime( self::CURRENT_DATE ),
+			strtotime( '+1 day', strtotime( self::CURRENT_DATE ) )
+		);
+		$restrictions = Restriction::get( [], [ $this->itemId ] );
 		$this->assertCount( 1, $restrictions );
-		$this->assertEquals( $this->restrictionId, $restrictions[0]->ID );
+		$this->assertEquals( $itemOnlyId, $restrictions[0]->ID );
 	}
 
 	public function testGetWithNoFilters() {

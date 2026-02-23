@@ -742,10 +742,12 @@ class Plugin {
 		// register shortcodes
 		add_action( 'init', array( $this, 'registerShortcodes' ) );
 
-		// Sync restrictions to index table on save/delete
+		// Sync restrictions to index table on save/delete/meta-update
 		add_action( 'save_post_' . Restriction::getPostType(), array( \CommonsBooking\Repository\Restriction::class, 'syncToIndexTable' ), 20, 1 );
 		add_action( 'delete_post', array( \CommonsBooking\Repository\Restriction::class, 'deleteFromIndexTable' ), 10, 1 );
 		add_action( 'wp_trash_post', array( \CommonsBooking\Repository\Restriction::class, 'deleteFromIndexTable' ), 10, 1 );
+		add_action( 'updated_post_meta', array( \CommonsBooking\Repository\Restriction::class, 'onMetaUpdate' ), 10, 4 );
+		add_action( 'added_post_meta', array( \CommonsBooking\Repository\Restriction::class, 'onMetaUpdate' ), 10, 4 );
 
 		// Remove cache items on save.
 		add_action( 'wp_insert_post', array( $this, 'savePostActions' ), 10, 3 );

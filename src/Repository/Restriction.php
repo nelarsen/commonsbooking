@@ -83,6 +83,41 @@ class Restriction extends PostRepository {
 	}
 
 	/**
+	 * Meta keys stored in the index table.
+	 * Used to detect relevant postmeta changes.
+	 */
+	private static array $indexedMetaKeys = [
+		\CommonsBooking\Model\Restriction::META_LOCATION_ID,
+		\CommonsBooking\Model\Restriction::META_ITEM_ID,
+		\CommonsBooking\Model\Restriction::META_START,
+		\CommonsBooking\Model\Restriction::META_END,
+		\CommonsBooking\Model\Restriction::META_TYPE,
+		\CommonsBooking\Model\Restriction::META_STATE,
+		\CommonsBooking\Model\Restriction::META_HINT,
+	];
+
+	/**
+	 * Hook callback for updated_post_meta / added_post_meta.
+	 * Re-syncs the index table when a relevant restriction meta key changes,
+	 * so that programmatic update_post_meta() calls stay in sync.
+	 *
+	 * @param int    $metaId
+	 * @param int    $postId
+	 * @param string $metaKey
+	 * @param mixed  $metaValue
+	 */
+	public static function onMetaUpdate( $metaId, $postId, $metaKey, $metaValue ): void {
+		if ( ! in_array( $metaKey, self::$indexedMetaKeys, true ) ) {
+			return;
+		}
+		$post = get_post( $postId );
+		if ( ! $post || $post->post_type !== \CommonsBooking\Wordpress\CustomPostType\Restriction::getPostType() ) {
+			return;
+		}
+		self::syncToIndexTable( (int) $postId );
+	}
+
+	/**
 	 * Syncs a restriction post's meta data to the cb_restrictions index table.
 	 * Should be called on save_post_cb_restriction.
 	 *
@@ -248,13 +283,22 @@ class Restriction extends PostRepository {
 			$values = array_merge( $values, array_map( 'intval', $locations ) );
 			$values = array_merge( $values, array_map( 'intval', $items ) );
 		} elseif ( ! empty( $locations ) ) {
+			// Match the old filterPosts() semantics: when only locations are
+			// provided, restrictions that have BOTH a location and an item set
+			// are excluded (they require both dimensions to match).
 			$locPlaceholders = implode( ',', array_fill( 0, count( $locations ), '%d' ) );
-			$where[]         = "(r.location_id IN ($locPlaceholders) OR r.location_id IS NULL)";
-			$values          = array_merge( $values, array_map( 'intval', $locations ) );
+			$where[]         = '('
+				. '(r.location_id IS NULL AND r.item_id IS NULL)'
+				. " OR (r.item_id IS NULL AND r.location_id IN ($locPlaceholders))"
+				. ')';
+			$values = array_merge( $values, array_map( 'intval', $locations ) );
 		} elseif ( ! empty( $items ) ) {
 			$itemPlaceholders = implode( ',', array_fill( 0, count( $items ), '%d' ) );
-			$where[]          = "(r.item_id IN ($itemPlaceholders) OR r.item_id IS NULL)";
-			$values           = array_merge( $values, array_map( 'intval', $items ) );
+			$where[]          = '('
+				. '(r.location_id IS NULL AND r.item_id IS NULL)'
+				. " OR (r.location_id IS NULL AND r.item_id IN ($itemPlaceholders))"
+				. ')';
+			$values = array_merge( $values, array_map( 'intval', $items ) );
 		}
 
 		$statusPlaceholders = implode( ',', array_fill( 0, count( $postStatus ), '%s' ) );
